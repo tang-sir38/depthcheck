@@ -1,0 +1,26 @@
+{
+  "title": "depthcheck: depth-computable component of the single-cell Fano factor",
+  "description": "<p><strong>depthcheck</strong> decomposes the Fano factor of normalized single-cell UMI counts into a term that depends only on per-cell library sizes and a gene-specific residual, and returns a pre-registered verdict on whether a between-group contrast can be read as a difference in transcriptional noise.</p><p>The decomposition is an identity: <code>F_g = K E[1/L] + K D_g</code>, hence <code>Delta F_g = K Delta E[1/L] + K Delta D_g</code>. The first term is computable from library sizes alone.</p><p>This deposit contains the version described in the manuscript: the Python package, its test suite, the vignette, and the scripts that reproduce the application numbers.</p>",
+  "upload_type": "software",
+  "access_right": "open",
+  "license": "MIT",
+  "version": "1.0.0",
+  "language": "eng",
+  "keywords": [
+    "single-cell RNA sequencing",
+    "Fano factor",
+    "library size",
+    "dispersion",
+    "normalization",
+    "reproducibility"
+  ],
+  "creators": [
+    {"name": "Tang, Chaohua", "orcid": "0009-0004-7080-8993", "affiliation": "The 95th Hospital of Putian"},
+    {"name": "Wu, Fangfang", "affiliation": "The 95th Hospital of Putian"},
+    {"name": "Zheng, Yingying", "affiliation": "The 95th Hospital of Putian"},
+    {"name": "Zhan, Lingling", "affiliation": "The 95th Hospital of Putian"},
+    {"name": "Tan, Hong", "affiliation": "The 95th Hospital of Putian"},
+    {"name": "Lin, Lijing", "affiliation": "The 95th Hospital of Putian"},
+    {"name": "Wen, Meimei", "affiliation": "The 95th Hospital of Putian"}
+  ]
+}
