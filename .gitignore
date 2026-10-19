@@ -1,0 +1,17 @@
+# Build artefacts
+build/
+dist/
+*.egg-info/
+__pycache__/
+*.py[cod]
+
+# Test and type-checker caches
+.pytest_cache/
+.hypothesis/
+.mypy_cache/
+.ruff_cache/
+
+# Editors
+.vscode/
+.idea/
+.DS_Store
