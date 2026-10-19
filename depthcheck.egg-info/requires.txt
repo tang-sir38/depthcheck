@@ -1,7 +1,0 @@
-numpy>=1.23
-scipy>=1.9
-h5py>=3.7
-
-[dev]
-pytest>=7
-hypothesis>=6
