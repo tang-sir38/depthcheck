@@ -1,0 +1,8 @@
+include README.md
+include LICENSE
+include CITATION.cff
+include .zenodo.json
+recursive-include depthcheck py.typed
+recursive-include docs *.md
+recursive-include scripts *.py
+recursive-include tests *.py

@@ -1,0 +1,36 @@
+cff-version: 1.2.0
+message: "If you use depthcheck, please cite the software release and the accompanying paper."
+title: "depthcheck: depth-computable component of the single-cell Fano factor"
+version: 1.0.0
+date-released: "2026-10-18"
+license: MIT
+type: software
+authors:
+  - family-names: Tang
+    given-names: Chaohua
+    orcid: "https://orcid.org/0009-0004-7080-8993"
+    email: 13860904395@163.com
+  - family-names: Wu
+    given-names: Fangfang
+  - family-names: Zheng
+    given-names: Yingying
+  - family-names: Zhan
+    given-names: Lingling
+  - family-names: Tan
+    given-names: Hong
+  - family-names: Lin
+    given-names: Lijing
+  - family-names: Wen
+    given-names: Meimei
+repository-code: "https://github.com/tang-sir38/depthcheck"
+keywords:
+  - single-cell RNA sequencing
+  - Fano factor
+  - library size
+  - dispersion
+  - normalization
+abstract: >-
+  Decomposes the Fano factor of normalized UMI counts into a term that depends
+  only on per-cell library sizes and a gene-specific residual, and returns a
+  pre-registered PASS/FAIL/AMBIGUOUS verdict on whether a between-group
+  contrast is identifiable as a difference in transcriptional noise.

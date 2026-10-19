@@ -1,0 +1,157 @@
+# depthcheck
+
+`depthcheck` decomposes the Fano factor of normalized single-cell counts into a
+term that depends only on per-cell library sizes and a gene-specific residual,
+and returns a pre-registered verdict on whether a between-group contrast can be
+read as a difference in transcriptional noise.
+
+The decomposition is an identity, not a model:
+
+```
+F_g = K·E[1/L] + K·D_g
+```
+
+with `K = 10^4` (CP10K), `L` the per-cell total UMI count, and `D_g` a term that
+contains only biological moments. Between two groups,
+
+```
+ΔF_g = K·ΔE[1/L] + K·ΔD_g
+```
+
+The first term is computable from library sizes alone — no expression matrix, no
+model fit, no assumption about biology. When it is large, `ΔF` is not
+identifiable as a noise contrast.
+
+## Install
+
+```bash
+pip install "depthcheck @ git+https://github.com/tang-sir38/depthcheck.git@v1.0.0"
+```
+
+From a local checkout, `pip install .` works too. Python ≥ 3.9; dependencies are
+`numpy`, `scipy` and `h5py`.
+
+## 60-second demo
+
+```bash
+depthcheck demo --out demo
+```
+
+This writes two synthetic H5AD files and analyses both:
+
+| dataset | what differs | expected verdict |
+|---|---|---|
+| `demo_depth_only` | library size only | **FAIL** — depth explains the contrast |
+| `demo_noise_only` | overdispersion only, depth matched | **PASS** — residual is real |
+
+## Run on your own data
+
+```bash
+depthcheck run \
+  --h5ad data.h5ad \
+  --group-col group \
+  --contrast treated:control \
+  --type-col cell_type \
+  --donor-col donor_id \
+  --stratified \
+  --out results/
+```
+
+Outputs (all deterministic, no timestamps):
+
+| file | content |
+|---|---|
+| `depthcheck_result.tsv` | one row per (cell type × contrast) |
+| `depthcheck_summary.html` | table of all units with verdicts |
+| `depthcheck_report.html` | full report for the first estimable unit |
+| `depthcheck_run.json` | parameters, criteria and every number |
+| `depthcheck_asserts.txt` | PASS/FAIL audit trail |
+| `depthcheck_log.txt` | run log |
+
+`--type-name` can be repeated to restrict the analysis; without it, every cell
+type in `--type-col` is analysed in the same streaming pass. `--contrast` can be
+repeated to evaluate several group pairs from that pass.
+
+## What the verdict means
+
+The rule was fixed before any result was produced (PLAN v1.3 §5):
+
+| verdict | condition | reading |
+|---|---|---|
+| `PASS` | `|implied| < 0.02` **and** residual 95% CI outside `[-0.05, +0.05]` | a noise contrast may be discussed |
+| `FAIL` | observed ΔF inside the depth-implied band | depth alone reproduces the contrast; not a noise contrast |
+| `AMBIGUOUS` | otherwise | report both components, do not interpret |
+
+The operational definition of the band and of "CI excludes 0.05" is documented
+in `depthcheck.decompose` and pinned by `tests/test_verdict_boundaries.py`.
+Changing a threshold is a protocol amendment, not a refactor.
+
+## Python API
+
+```python
+from depthcheck import H5ADCounts, SufficientStats, implied_delta_fano, decompose
+
+with H5ADCounts("data.h5ad", obs_cols=["group", "donor_id"]) as ds:
+    stats = SufficientStats.zeros(n_blocks, ds.n_genes, K=1e4)
+    for block in ds.iter_blocks():
+        ...  # accumulate per-block sufficient statistics
+
+implied = implied_delta_fano(L_group_a, L_group_b)
+```
+
+`SufficientStats` stores four per-gene sums per block (`Σx/L`, `Σx²/L²`,
+`Σx/L²`, `Σ1/L`) plus cell counts, so `F`, `T_depth`, `T_cov` and `T_bio` are
+recovered exactly and the identity can be asserted in code.
+
+## Reproducibility
+
+* `pytest` — 23 tests, including three property tests of the identity and a
+  synthetic dataset with a known ΔF.
+* `pytest --runslow` — reproduces the ten reliable mouse ovary cell types from
+  the raw 865 MB H5AD against the frozen E0 table (tolerance 1e-5).
+* `python scripts/reproduce_e5.py --out repro` — rebuilds the 66-unit
+  application from `depthcheck`'s public API and checks the manuscript numbers:
+
+  ```
+  slope = 0.9549254095   (E5 0.9549254095, |Δ| = 2.3e-11)
+  r     = 0.9967693981   (E5 0.9967693981, |Δ| = 7.8e-12)
+  ```
+
+* `python scripts/dualrun.py --out repro -- python scripts/reproduce_e5.py --out repro`
+  moves old outputs aside, requires both runs to exit 0, and only then compares
+  SHA-256 digests.
+
+## Scope and limitations
+
+* **UMI counts only.** For read counts the sampling variance is not `L·p`, and
+  the depth term is no longer `K·E[1/L]` (it remains computable from `L`, but
+  this package does not implement that form).
+* **The depth term is not attributable.** `L` is the product of capture
+  efficiency and cellular RNA content; the decomposition says the contrast is
+  non-identifiable, not that it is technical.
+* **Single genes are not identifiable.** `T_cov` is zero-mean but high-variance
+  across genes; only aggregate contrasts (median or mean over genes) are
+  stable. Do not rank genes by `ΔF`.
+* **The empirical validation is a mouse ovary dataset.** The package is
+  generic; the published regression (slope 0.955, r 0.997) is from one mouse
+  dataset and should not be quoted as a cross-species result.
+* **Depth matching is not distribution matching.** Stratifying on pooled
+  library size removes the first moment of the depth difference and also
+  removes between-stratum composition; the two estimators are not
+  interchangeable. `--stratified` reports both.
+
+## Name
+
+`depthcheck` was checked against PyPI, Bioconductor and GitHub before release.
+The PyPI name and the Bioconductor package index are free. GitHub has unrelated
+projects named `depthcheck` (for example a squat-depth video tool); none is a
+single-cell dispersion package.
+
+## Citation
+
+See `CITATION.cff`. Version 1.0.0. A Zenodo DOI is minted from the deposited
+release; `docs/vignette.md` records the deposition steps.
+
+## License
+
+MIT.
